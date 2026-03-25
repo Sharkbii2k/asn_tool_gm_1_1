@@ -28,3 +28,26 @@ Có thể deploy lên:
 - UI này nối trực tiếp với API thật.
 - Parser hiện tối ưu cho PDF gốc text-selectable.
 - Ảnh JPG/PNG hiện đã có nút upload trong UI nhưng cần OCR module riêng nếu muốn xử lý ảnh chính xác như PDF.
+
+## Bản vá 1.1.1
+- Sửa export Excel trên iPhone/Safari bằng cơ chế export trực tiếp qua URL.
+- Lưu session export tạm trên server để tránh lỗi tải file.
+
+
+## Bản vá 1.1.2
+- Chuẩn hóa Rev về dạng 2 ký tự (`01`, `02`, `03`...).
+- Áp chuẩn hóa này cho import Single Packing, Pair Packing và lookup tính toán.
+- File Single Packing tạo từ DS XC2 cũng đã sửa Rev đúng định dạng.
+
+
+## Bản vá Excel clean
+- Bỏ toàn bộ các ô/khung thừa bên phải trong sheet LINES.
+- Chỉ giữ 1 bảng `Total Cartons` duy nhất ở L1:M5.
+- Thêm dòng `TOTAL` vào bảng tổng cartons.
+
+
+## ASN Tool GM 2.0
+- PWA cá nhân chuẩn iPhone
+- Icon Home Screen qua `apple-touch-icon` + `manifest.json`
+- Packing tách 2 menu con: `Mã đơn` / `Mã đôi`
+- Logic packing giữ Rev trong file nhưng ưu tiên tính theo Item; nếu cùng Item nhiều Qty khác nhau sẽ báo `Packing Conflict`

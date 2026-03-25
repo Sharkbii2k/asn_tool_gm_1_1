@@ -1,5 +1,5 @@
-
 from __future__ import annotations
+import re
 from pathlib import Path
 from io import BytesIO
 import os
@@ -13,6 +13,21 @@ PAIR_PATH = DATA_DIR / "pair_master.xlsx"
 
 SINGLE_COLS = ["Item", "Rev", "Qty"]
 PAIR_COLS = ["Item A", "Rev A", "Item B", "Rev B", "Qty"]
+
+def normalize_rev(v):
+    if v in (None, ""):
+        return ""
+    s = str(v).strip()
+    try:
+        f = float(s)
+        if f.is_integer():
+            return str(int(f)).zfill(2)
+    except Exception:
+        pass
+    m = re.fullmatch(r"0?(\d)", s)
+    if m:
+        return m.group(1).zfill(2)
+    return s
 
 def _read_upload(upload_bytes: bytes, filename: str) -> pd.DataFrame:
     ext = os.path.splitext(filename.lower())[1]

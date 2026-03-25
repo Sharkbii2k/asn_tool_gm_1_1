@@ -181,6 +181,7 @@ def build_header_sheet(ws_tpl, ws_out, headers_df: pd.DataFrame, review_df: pd.D
     for col in ['D','E','F','G']:
         ws_out.column_dimensions[col].width = max(ws_out.column_dimensions[col].width or 0, 28)
 
+
 def build_lines_sheet(ws_tpl, ws_out, headers_df: pd.DataFrame, review_df: pd.DataFrame):
     _copy_sheet_dimensions(ws_tpl, ws_out)
     row_cursor = 1
@@ -212,34 +213,14 @@ def build_lines_sheet(ws_tpl, ws_out, headers_df: pd.DataFrame, review_df: pd.Da
         ws_out.cell(row_cursor + 1, 1).value = "ETA"
         ws_out.cell(row_cursor + 1, 2).value = h.get("ETA", "")
 
-        type_totals = {"CPT": 0, "OP": 0, "GP": 0}
-        if not rows.empty:
-            for _, rr in rows.iterrows():
-                line_no = str(rr.get("Line No", "") or "").upper().strip()
-                total = rr.get("Total Cartons")
-                try:
-                    total = float(total) if total not in ("", None) else 0
-                except Exception:
-                    total = 0
-                if line_no.startswith("C2"):
-                    type_totals["CPT"] += total
-                elif line_no.startswith("C1"):
-                    type_totals["OP"] += total
-                elif line_no.startswith("GP") or "GP JOB" in line_no:
-                    type_totals["GP"] += total
-        total_cartons = sum(type_totals.values())
-        def _pretty_num(v):
-            if not v:
-                return ""
-            return int(v) if abs(v - round(v)) < 1e-9 else round(v, 4)
-        ws_out.cell(row_cursor, 13).value = _pretty_num(total_cartons)
-        ws_out.cell(row_cursor + 1, 13).value = _pretty_num(type_totals["CPT"])
-        ws_out.cell(row_cursor + 2, 13).value = _pretty_num(type_totals["OP"])
-        ws_out.cell(row_cursor + 3, 13).value = _pretty_num(type_totals["GP"])
-        for rr in [row_cursor, row_cursor+1, row_cursor+2, row_cursor+3]:
-            for cc in [12, 13]:
-                ws_out.cell(rr, cc).alignment = Alignment(horizontal="center", vertical="center")
-                ws_out.cell(rr, cc).border = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
+        # remove placeholder/border area on right for this section
+        for rr in range(row_cursor, row_cursor + 4):
+            for cc in range(12, 19):  # L:R
+                cell = ws_out.cell(rr, cc)
+                cell.value = None
+                cell.fill = PatternFill(fill_type=None)
+                cell.border = Border()
+                cell.alignment = Alignment(horizontal="center", vertical="center")
 
         records = rows.to_dict("records") if not rows.empty else []
         for j, row in enumerate(records, start=1):
@@ -264,8 +245,71 @@ def build_lines_sheet(ws_tpl, ws_out, headers_df: pd.DataFrame, review_df: pd.Da
                 ws_out.cell(r, 10).fill = RED_FILL
                 ws_out.cell(r, 10).font = RED_FONT
 
+            for cc in range(12, 19):
+                cell = ws_out.cell(r, cc)
+                cell.value = None
+                cell.fill = PatternFill(fill_type=None)
+                cell.border = Border()
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+
         row_cursor += 5 + len(records)
 
+    # Global Total Cartons summary shown once at top-right (L1:M5)
+    type_totals = {"CPT": 0, "OP": 0, "GP": 0}
+    if not review_df.empty:
+        for _, rr in review_df.iterrows():
+            line_no = str(rr.get("Line No", "") or "").upper().strip()
+            total = rr.get("Total Cartons")
+            try:
+                total = float(total) if total not in ("", None) else 0
+            except Exception:
+                total = 0
+            if line_no.startswith("C2"):
+                type_totals["CPT"] += total
+            elif line_no.startswith("C1"):
+                type_totals["OP"] += total
+            elif line_no.startswith("GP") or "GP JOB" in line_no:
+                type_totals["GP"] += total
+
+    def _pretty_num(v):
+        if not v:
+            return ""
+        return int(v) if abs(v - round(v)) < 1e-9 else round(v, 4)
+
+    # clear all right-side content first, keep summary only
+    for rr in range(1, ws_out.max_row + 1):
+        for cc in range(12, 19):
+            cell = ws_out.cell(rr, cc)
+            cell.value = None
+            cell.fill = PatternFill(fill_type=None)
+            cell.border = Border()
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    ws_out.merge_cells(start_row=1, start_column=12, end_row=1, end_column=13)  # L1:M1
+    ws_out.cell(1, 12).value = "Total Cartons"
+    ws_out.cell(1, 12).alignment = Alignment(horizontal="center", vertical="center")
+    ws_out.cell(1, 12).fill = PatternFill(fill_type="solid", fgColor="1F1F1F")
+    ws_out.cell(1, 12).font = Font(color="FFFFFF", bold=True)
+    ws_out.cell(1, 12).border = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
+    ws_out.cell(1, 13).border = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
+
+    summary_rows = [
+        ("CPT", type_totals["CPT"], "9DC3E6"),
+        ("OP", type_totals["OP"], "CCC0DA"),
+        ("GP", type_totals["GP"], "F4B183"),
+        ("TOTAL", sum(type_totals.values()), "D9EAD3"),
+    ]
+    for i, (label, value, fill) in enumerate(summary_rows, start=2):
+        ws_out.cell(i, 12).value = label
+        ws_out.cell(i, 13).value = _pretty_num(value)
+        for c in (12, 13):
+            ws_out.cell(i, c).alignment = Alignment(horizontal="center", vertical="center")
+            ws_out.cell(i, c).fill = PatternFill(fill_type="solid", fgColor=fill)
+            ws_out.cell(i, c).border = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
+        if label == "TOTAL":
+            ws_out.cell(i, 12).font = Font(bold=True)
+            ws_out.cell(i, 13).font = Font(bold=True)
+
     _auto_width(ws_out, max_width=32)
-    for col, width in {"B":14, "D":12, "E":12, "F":12, "G":10, "H":12, "I":18, "J":16, "L":12, "M":12}.items():
+    for col, width in {"B":14, "D":12, "E":12, "F":12, "G":10, "H":12, "I":18, "J":16, "L":14, "M":14}.items():
         ws_out.column_dimensions[col].width = max(ws_out.column_dimensions[col].width or 0, width)

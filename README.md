@@ -51,3 +51,8 @@ Có thể deploy lên:
 - Icon Home Screen qua `apple-touch-icon` + `manifest.json`
 - Packing tách 2 menu con: `Mã đơn` / `Mã đôi`
 - Logic packing giữ Rev trong file nhưng ưu tiên tính theo Item; nếu cùng Item nhiều Qty khác nhau sẽ báo `Packing Conflict`
+
+
+## Rev UI fix
+- Rev trong Packing Mã đơn/Mã đôi luôn hiển thị dạng 2 ký tự: 01, 02, 03...
+- Khi nhập/sửa/lưu cũng chuẩn hóa Rev về dạng 2 ký tự.

@@ -16,6 +16,13 @@ const packingBody = document.querySelector('#packingTable tbody');
 const pairBody = document.querySelector('#pairTable tbody');
 
 function qs(id){ return document.getElementById(id); }
+function normalizeRev(v){
+  if (v === null || v === undefined) return '';
+  const s = String(v).trim();
+  if (!s) return '';
+  if (/^\d+$/.test(s)) return s.padStart(2, '0');
+  return s;
+}
 function esc(v){ return v === null || v === undefined ? '' : String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
 function toNumberOrText(v){ if (v === '') return ''; const num = Number(v); return Number.isNaN(num) ? v : num; }
 
@@ -128,20 +135,20 @@ function renderPackingTables(){
   pairBody.innerHTML = '';
   const singleRows = state.singlePacking.length ? state.singlePacking : [{"Item":"", "Rev":"01", "Qty":""}];
   const pairRows = state.pairPacking.length ? state.pairPacking : [{"Item A":"", "Rev A":"01", "Item B":"", "Rev B":"01", "Qty":""}];
-  singleRows.forEach(r => packingBody.insertAdjacentHTML('beforeend', `<tr><td contenteditable="true">${esc(r["Item"] || '')}</td><td contenteditable="true">${esc(r["Rev"] || '')}</td><td contenteditable="true">${esc(r["Qty"] || '')}</td></tr>`));
-  pairRows.forEach(r => pairBody.insertAdjacentHTML('beforeend', `<tr><td contenteditable="true">${esc(r["Item A"] || '')}</td><td contenteditable="true">${esc(r["Rev A"] || '')}</td><td contenteditable="true">${esc(r["Item B"] || '')}</td><td contenteditable="true">${esc(r["Rev B"] || '')}</td><td contenteditable="true">${esc(r["Qty"] || '')}</td></tr>`));
+  singleRows.forEach(r => packingBody.insertAdjacentHTML('beforeend', `<tr><td contenteditable="true">${esc(r["Item"] || '')}</td><td contenteditable="true">${esc(normalizeRev(r["Rev"]))}</td><td contenteditable="true">${esc(r["Qty"] || '')}</td></tr>`));
+  pairRows.forEach(r => pairBody.insertAdjacentHTML('beforeend', `<tr><td contenteditable="true">${esc(r["Item A"] || '')}</td><td contenteditable="true">${esc(normalizeRev(r["Rev A"]))}</td><td contenteditable="true">${esc(r["Item B"] || '')}</td><td contenteditable="true">${esc(normalizeRev(r["Rev B"]))}</td><td contenteditable="true">${esc(r["Qty"] || '')}</td></tr>`));
 }
 
 function readSinglePacking(){
   return Array.from(packingBody.querySelectorAll('tr')).map(tr => {
     const tds = tr.querySelectorAll('td');
-    return {"Item": tds[0]?.innerText.trim() || '', "Rev": tds[1]?.innerText.trim() || '', "Qty": toNumberOrText(tds[2]?.innerText.trim() || '')};
+    return {"Item": tds[0]?.innerText.trim() || '', "Rev": normalizeRev(tds[1]?.innerText.trim() || ''), "Qty": toNumberOrText(tds[2]?.innerText.trim() || '')};
   }).filter(r => r.Item);
 }
 function readPairPacking(){
   return Array.from(pairBody.querySelectorAll('tr')).map(tr => {
     const tds = tr.querySelectorAll('td');
-    return {"Item A": tds[0]?.innerText.trim() || '', "Rev A": tds[1]?.innerText.trim() || '', "Item B": tds[2]?.innerText.trim() || '', "Rev B": tds[3]?.innerText.trim() || '', "Qty": toNumberOrText(tds[4]?.innerText.trim() || '')};
+    return {"Item A": tds[0]?.innerText.trim() || '', "Rev A": normalizeRev(tds[1]?.innerText.trim() || ''), "Item B": tds[2]?.innerText.trim() || '', "Rev B": normalizeRev(tds[3]?.innerText.trim() || ''), "Qty": toNumberOrText(tds[4]?.innerText.trim() || '')};
   }).filter(r => r["Item A"] || r["Item B"]);
 }
 

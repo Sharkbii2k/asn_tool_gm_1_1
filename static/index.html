@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASN Tool GM 1.1</title>
+  <link rel="icon" type="image/png" href="/static/app_icon.png" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div class="brand-wrap">
+        <img src="/static/app_icon.png" alt="App Icon" class="brand-icon" />
+        <div class="brand-text">
+          <h1>ASN TOOL GM</h1>
+          <p>Version 1.1 • Scan ASN, Packing Master, Review Result và Export Excel.</p>
+        </div>
+      </div>
+
+      <nav class="tabs">
+        <button class="tab active" data-tab="scan">Scan ASN</button>
+        <button class="tab" data-tab="packing">Packing</button>
+        <button class="tab" data-tab="result">Result</button>
+      </nav>
+    </header>
+
+    <main class="content">
+      <section id="tab-scan" class="tab-panel active">
+        <div class="card">
+          <h2>Scan ASN</h2>
+          <label class="upload-box">
+            <div class="upload-text">
+              <div class="upload-title">Choose PDF / JPG / PNG files</div>
+              <div class="upload-subtitle">Hiện parser thực hỗ trợ tốt nhất với PDF gốc text-selectable.</div>
+            </div>
+            <span class="choose-btn">Choose files</span>
+            <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png" />
+          </label>
+
+          <div id="fileList" class="file-list empty">Chưa có file nào được chọn.</div>
+
+          <div class="action-stack">
+            <button class="primary-btn dark" id="scanBtn">Scan ASN</button>
+            <button class="primary-btn orange" id="exportBtnTop">Export Excel</button>
+          </div>
+          <div id="scanStatus" class="status-box muted">Sẵn sàng quét file.</div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <h2>Header Preview</h2>
+            <span class="badge" id="headerCountBadge">0 ASN</span>
+          </div>
+          <div class="table-scroll">
+            <table id="headerTable">
+              <thead>
+                <tr>
+                  <th>ASN No</th>
+                  <th>ETA</th>
+                  <th>ETD</th>
+                  <th>Sold To</th>
+                  <th>Bill To</th>
+                </tr>
+              </thead>
+              <tbody id="headerPreviewBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-packing" class="tab-panel">
+        <div class="card">
+          <div class="section-head">
+            <h2>Packing Master</h2>
+            <span class="badge">Single Packing</span>
+          </div>
+
+          <div class="search-row">
+            <input type="text" id="packingSearch" class="search-input" placeholder="Search item..." />
+          </div>
+
+          <div class="table-scroll">
+            <table id="packingTable">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Rev</th>
+                  <th>Packing</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="button-row">
+            <button class="secondary-btn" id="addRowBtn">Add Row</button>
+            <label class="secondary-btn file-btn">
+              Import Excel
+              <input type="file" id="singleImportInput" accept=".xlsx,.csv" hidden />
+            </label>
+            <button class="secondary-btn" id="savePackingBtn">Save Packing</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <h2>Pair Packing</h2>
+            <span class="badge">Item A + Rev A + Item B + Rev B</span>
+          </div>
+
+          <div class="table-scroll">
+            <table id="pairTable">
+              <thead>
+                <tr>
+                  <th>Item A</th>
+                  <th>Rev A</th>
+                  <th>Item B</th>
+                  <th>Rev B</th>
+                  <th>Qty</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="button-row">
+            <button class="secondary-btn" id="addPairRowBtn">Add Row</button>
+            <label class="secondary-btn file-btn">
+              Import Pair Excel
+              <input type="file" id="pairImportInput" accept=".xlsx,.csv" hidden />
+            </label>
+            <button class="secondary-btn" id="savePairBtn">Save Pair</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-result" class="tab-panel">
+        <div class="card">
+          <div class="section-head">
+            <h2>Lines Result</h2>
+            <span class="badge" id="etaBadge">ETA sớm nhất: -</span>
+          </div>
+
+          <div class="table-scroll">
+            <table id="resultTable">
+              <thead>
+                <tr>
+                  <th>ASN</th>
+                  <th>PO No</th>
+                  <th>Item</th>
+                  <th>Rev</th>
+                  <th>Quantity</th>
+                  <th>Uom</th>
+                  <th>Net Weight</th>
+                  <th>SO No</th>
+                  <th>Invoice No</th>
+                  <th>Line No</th>
+                  <th>Packing</th>
+                  <th>Full</th>
+                  <th>Loose</th>
+                  <th>Total</th>
+                  <th>Note</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="button-row">
+            <button class="secondary-btn" id="recalculateBtn">Recalculate</button>
+            <button class="primary-btn orange half" id="exportBtnBottom">Export Excel</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <h2>Total Cartons</h2>
+            <span class="badge" id="summaryBadge">Ready</span>
+          </div>
+
+          <div class="table-scroll narrow">
+            <table>
+              <thead>
+                <tr>
+                  <th>Location</th>
+                  <th>Thùng chẵn</th>
+                  <th>Tổng số thùng lẻ</th>
+                  <th>Tổng cartons</th>
+                </tr>
+              </thead>
+              <tbody id="cartonSummary"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
